@@ -43,7 +43,10 @@ export default function Login() {
     
     try {
       setIsLoading(true);
-      await signIn(email, password);
+      const result = await signIn(email, password);
+      
+      // Navigation will happen automatically in the useEffect
+      // when user state changes
     } catch (error) {
       console.error("Erro ao fazer login:", error);
     } finally {
@@ -56,17 +59,17 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center mb-8">
-          <div className="h-16 w-16 rounded-full bg-nutriflow-500 flex items-center justify-center text-white mb-4">
+          <div className="h-16 w-16 rounded-full bg-green-500 flex items-center justify-center text-white mb-4">
             <ClipboardList className="h-8 w-8" />
           </div>
-          <h1 className="text-3xl font-bold text-nutriflow-800">NutriFlow</h1>
-          <p className="text-sm text-muted-foreground mt-1">Gerenciamento de nutrição e pacientes</p>
+          <h1 className="text-3xl font-bold text-green-800">NutriFlow</h1>
+          <p className="text-sm text-gray-500 mt-1">Gerenciamento de nutrição e pacientes</p>
         </div>
         
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>Login</CardTitle>
             <CardDescription>
@@ -84,6 +87,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isLoading}
+                  className="border-gray-300"
                 />
               </div>
               <div className="space-y-2">
@@ -96,7 +100,7 @@ export default function Login() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    className="pr-10"
+                    className="pr-10 border-gray-300"
                   />
                   <button
                     type="button"
@@ -104,26 +108,26 @@ export default function Login() {
                     className="absolute inset-y-0 right-0 flex items-center pr-3"
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      <EyeOff className="h-4 w-4 text-gray-500" />
                     ) : (
-                      <Eye className="h-4 w-4 text-muted-foreground" />
+                      <Eye className="h-4 w-4 text-gray-500" />
                     )}
                   </button>
                 </div>
               </div>
               
               {error && (
-                <div className="text-destructive text-sm">
+                <div className="text-red-500 text-sm">
                   {error}
                 </div>
               )}
               
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isLoading}>
                 {isLoading ? "Entrando..." : "Entrar"}
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex justify-center text-xs text-muted-foreground">
+          <CardFooter className="flex justify-center text-xs text-gray-500">
             NutriFlow - Plataforma para nutricionistas e pacientes
           </CardFooter>
         </Card>

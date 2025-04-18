@@ -1,38 +1,26 @@
 
 import { useState, useEffect } from "react";
 import { PatientLayout } from "@/layouts/PatientLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  UtensilsCrossed, 
-  Calendar,
-  Clock,
-  Plus
-} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
-import { format, parseISO } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { UtensilsCrossed, Clock } from "lucide-react";
 
-interface DailyIntake {
+interface MealEntry {
   id: string;
   date: string;
   meal_time: string;
   food_description: string;
-  calories: number | null;
-  quantity_description: string | null;
-  notes: string | null;
-  water_ml: number | null;
-  protein_g: number | null;
-  fat_g: number | null;
-  carbohydrates_g: number | null;
-  fiber_g: number | null;
-  created_at: string;
+  calories: number;
+  protein_g: number;
+  carbohydrates_g: number;
+  fat_g: number;
 }
 
-export default function RecentMealsIA() {
-  const { user } = useAuth();
-  const [mealHistory, setMealHistory] = useState<DailyIntake[]>([]);
+export default function RecentMealsHistory() {
+  const [meals, setMeals] = useState<MealEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchMealHistory = async () => {
@@ -41,28 +29,34 @@ export default function RecentMealsIA() {
       try {
         setIsLoading(true);
         
-        // Get the date 15 days ago
+        // Get today's date
+        const today = new Date();
+        
+        // Get date 15 days ago
         const fifteenDaysAgo = new Date();
         fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-        const dateString = fifteenDaysAgo.toISOString().split('T')[0];
         
-        // Fetch real data from daily_intake table
+        // Format dates for Supabase query
+        const fromDate = fifteenDaysAgo.toISOString().split('T')[0];
+        const toDate = today.toISOString().split('T')[0];
+        
         const { data, error } = await supabase
           .from('daily_intake')
           .select('*')
           .eq('patient_id', user.id)
-          .gte('date', dateString)
+          .gte('date', fromDate)
+          .lte('date', toDate)
           .order('date', { ascending: false })
           .order('meal_time', { ascending: true });
         
         if (error) {
-          throw new Error(error.message);
+          throw error;
         }
         
-        setMealHistory(data || []);
-        setIsLoading(false);
+        setMeals(data || []);
       } catch (error) {
         console.error("Erro ao buscar histórico de refeições:", error);
+      } finally {
         setIsLoading(false);
       }
     };
@@ -70,11 +64,29 @@ export default function RecentMealsIA() {
     fetchMealHistory();
   }, [user]);
 
-  // Group meals by date
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('pt-BR', { 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric'
+      }).format(date);
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const formatTime = (timeString: string) => {
+    if (!timeString) return "-";
+    return timeString.substring(0, 5); // Get HH:MM
+  };
+
   const groupMealsByDate = () => {
-    const grouped: { [key: string]: DailyIntake[] } = {};
+    const grouped: Record<string, MealEntry[]> = {};
     
-    mealHistory.forEach(meal => {
+    meals.forEach(meal => {
       const date = meal.date;
       if (!grouped[date]) {
         grouped[date] = [];
@@ -82,138 +94,78 @@ export default function RecentMealsIA() {
       grouped[date].push(meal);
     });
     
-    // Sort dates (most recent first)
-    return Object.entries(grouped)
-      .sort((a, b) => {
-        return new Date(b[0]).getTime() - new Date(a[0]).getTime();
-      });
+    return grouped;
   };
 
   const groupedMeals = groupMealsByDate();
 
-  const formatTime = (time: string) => {
-    // If time is in HH:MM:SS format, return HH:MM
-    if (time && time.includes(':')) {
-      return time.substring(0, 5);
-    }
-    return time;
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <PatientLayout title="Histórico de Refeições">
-        <div className="flex items-center justify-center h-64">
-          <p>Carregando histórico de refeições...</p>
-        </div>
-      </PatientLayout>
-    );
-  }
-
-  if (mealHistory.length === 0) {
-    return (
-      <PatientLayout title="Histórico de Refeições">
-        <div className="text-center py-12">
-          <UtensilsCrossed className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Nenhuma refeição encontrada</h2>
-          <p className="text-muted-foreground">
-            Você ainda não registrou nenhuma refeição nos últimos 15 dias.
-          </p>
-        </div>
-      </PatientLayout>
-    );
-  }
-
   return (
     <PatientLayout title="Histórico de Refeições">
-      <div className="space-y-8">
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UtensilsCrossed className="h-5 w-5" />
-              Histórico de Refeições
+      <div className="space-y-6">
+        <Card className="bg-white border-0 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl text-green-900 flex items-center gap-2">
+              <UtensilsCrossed className="h-5 w-5 text-green-600" />
+              Refeições dos Últimos 15 Dias
             </CardTitle>
-            <CardDescription>
-              Registro das suas refeições nos últimos 15 dias
-            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground mb-2">
-              Aqui você pode visualizar todas as refeições que você registrou nos últimos 15 dias.
-              Estas informações são utilizadas para calcular seu consumo médio diário.
-            </p>
+            {isLoading ? (
+              <div className="text-center py-12">
+                <p>Carregando histórico de refeições...</p>
+              </div>
+            ) : meals.length === 0 ? (
+              <div className="text-center py-12">
+                <UtensilsCrossed className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">Nenhuma refeição registrada</h3>
+                <p className="text-gray-500">
+                  Não há refeições registradas nos últimos 15 dias.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-8">
+                {Object.entries(groupedMeals).map(([date, mealList]) => (
+                  <div key={date} className="space-y-4">
+                    <h3 className="font-semibold text-lg text-green-800">
+                      {formatDate(date)}
+                    </h3>
+                    <div className="space-y-4">
+                      {mealList.map((meal) => (
+                        <div key={meal.id} className="flex items-start gap-4 border-b pb-4 last:border-0 last:pb-0">
+                          <div className="h-10 w-10 rounded-full bg-green-100 flex-shrink-0 flex items-center justify-center">
+                            <Clock className="h-5 w-5 text-green-500" />
+                          </div>
+                          <div className="flex-grow">
+                            <div className="flex justify-between mb-1">
+                              <h4 className="font-medium text-green-900">
+                                {meal.meal_time ? formatTime(meal.meal_time) : "Sem horário"}
+                              </h4>
+                            </div>
+                            <p className="text-sm text-gray-600">{meal.food_description || "Sem descrição"}</p>
+                            <div className="flex flex-wrap gap-3 mt-2">
+                              <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">
+                                {meal.calories || 0} kcal
+                              </span>
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">
+                                P: {meal.protein_g || 0}g
+                              </span>
+                              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">
+                                C: {meal.carbohydrates_g || 0}g
+                              </span>
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                G: {meal.fat_g || 0}g
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
-
-        {groupedMeals.map(([date, meals]) => (
-          <div key={date} className="space-y-3">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-medium">{formatDate(date)}</h3>
-            </div>
-            
-            {meals.map((meal) => (
-              <Card key={meal.id} className="overflow-hidden">
-                <div className="bg-nutriflow-50 p-3 border-b flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-nutriflow-600" />
-                    <span className="font-medium">{formatTime(meal.meal_time)}</span>
-                  </div>
-                  <div className="text-sm text-nutriflow-700">
-                    {meal.calories ? `${meal.calories} kcal` : ""}
-                  </div>
-                </div>
-                <CardContent className="p-4">
-                  <div className="space-y-2">
-                    <div className="font-medium">{meal.food_description}</div>
-                    {meal.quantity_description && (
-                      <div className="text-sm text-muted-foreground">
-                        Porção: {meal.quantity_description}
-                      </div>
-                    )}
-                    
-                    {(meal.protein_g || meal.carbohydrates_g || meal.fat_g) && (
-                      <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
-                        {meal.protein_g && (
-                          <div className="bg-blue-50 p-2 rounded">
-                            <div className="font-medium">Proteínas</div>
-                            <div>{meal.protein_g}g</div>
-                          </div>
-                        )}
-                        {meal.carbohydrates_g && (
-                          <div className="bg-amber-50 p-2 rounded">
-                            <div className="font-medium">Carboidratos</div>
-                            <div>{meal.carbohydrates_g}g</div>
-                          </div>
-                        )}
-                        {meal.fat_g && (
-                          <div className="bg-rose-50 p-2 rounded">
-                            <div className="font-medium">Gorduras</div>
-                            <div>{meal.fat_g}g</div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                    
-                    {meal.notes && (
-                      <div className="text-sm mt-2 p-2 bg-gray-50 rounded-md">
-                        {meal.notes}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ))}
       </div>
     </PatientLayout>
   );

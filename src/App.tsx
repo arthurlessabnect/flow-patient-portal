@@ -1,71 +1,104 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+import { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "@/components/ui/toaster";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-// Páginas de Autenticação
-import Login from "./pages/Login";
-import ConfirmInvitation from "./pages/ConfirmInvitation";
-import Unauthorized from "./pages/Unauthorized";
+// Lazy-loaded components
+const Login = lazy(() => import("@/pages/Login"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
+const ConfirmInvitation = lazy(() => import("@/pages/ConfirmInvitation"));
 
-// Páginas do Nutricionista
-import NutritionistDashboard from "./pages/nutritionist/Dashboard";
-import PatientsList from "./pages/nutritionist/PatientsList";
-import AddPatient from "./pages/nutritionist/AddPatient";
-import PatientDetails from "./pages/nutritionist/PatientDetails";
+// Nutritionist pages
+const NutritionistDashboard = lazy(() => import("@/pages/nutritionist/Dashboard"));
+const PatientsList = lazy(() => import("@/pages/nutritionist/PatientsList"));
+const PatientDetails = lazy(() => import("@/pages/nutritionist/PatientDetails"));
+const AddPatient = lazy(() => import("@/pages/nutritionist/AddPatient"));
+const CreateDiet = lazy(() => import("@/pages/nutritionist/CreateDiet"));
+const RegisterResult = lazy(() => import("@/pages/nutritionist/RegisterResult"));
 
-// Páginas do Paciente
-import PatientDashboard from "./pages/patient/Dashboard";
-import MyDiet from "./pages/patient/MyDiet";
-import MyResults from "./pages/patient/MyResults";
-import RecentMealsIA from "./pages/patient/RecentMealsIA";
+// Patient pages
+const PatientDashboard = lazy(() => import("@/pages/patient/Dashboard"));
+const MyDiet = lazy(() => import("@/pages/patient/MyDiet"));
+const MyResults = lazy(() => import("@/pages/patient/MyResults"));
+const RecentMealsIA = lazy(() => import("@/pages/patient/RecentMealsIA"));
 
-import NotFound from "./pages/NotFound";
-
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Suspense fallback={<div className="flex h-screen items-center justify-center">Carregando...</div>}>
           <Routes>
-            {/* Rota inicial - redireciona para login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            
-            {/* Rotas públicas de autenticação */}
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/confirm-invitation" element={<ConfirmInvitation />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             
-            {/* Rotas protegidas do Nutricionista */}
-            <Route element={<ProtectedRoute allowedRoles={['admin', 'nutritionist']} />}>
-              <Route path="/nutritionist/dashboard" element={<NutritionistDashboard />} />
-              <Route path="/nutritionist/patients" element={<PatientsList />} />
-              <Route path="/nutritionist/add-patient" element={<AddPatient />} />
-              <Route path="/nutritionist/patient/:patientId" element={<PatientDetails />} />
-            </Route>
+            {/* Nutritionist routes */}
+            <Route path="/nutritionist/dashboard" element={
+              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
+                <NutritionistDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/nutritionist/patients" element={
+              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
+                <PatientsList />
+              </ProtectedRoute>
+            } />
+            <Route path="/nutritionist/patient/:patientId" element={
+              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
+                <PatientDetails />
+              </ProtectedRoute>
+            } />
+            <Route path="/nutritionist/add-patient" element={
+              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
+                <AddPatient />
+              </ProtectedRoute>
+            } />
+            <Route path="/nutritionist/create-diet/:patientId" element={
+              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
+                <CreateDiet />
+              </ProtectedRoute>
+            } />
+            <Route path="/nutritionist/register-result/:patientId" element={
+              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
+                <RegisterResult />
+              </ProtectedRoute>
+            } />
             
-            {/* Rotas protegidas do Paciente */}
-            <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
-              <Route path="/patient/dashboard" element={<PatientDashboard />} />
-              <Route path="/patient/my-diet" element={<MyDiet />} />
-              <Route path="/patient/my-results" element={<MyResults />} />
-              <Route path="/patient/recent-meals-ia" element={<RecentMealsIA />} />
-            </Route>
+            {/* Patient routes */}
+            <Route path="/patient/dashboard" element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <PatientDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/my-diet" element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <MyDiet />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/my-results" element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <MyResults />
+              </ProtectedRoute>
+            } />
+            <Route path="/patient/recent-meals-ia" element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <RecentMealsIA />
+              </ProtectedRoute>
+            } />
             
-            {/* Rota 404 */}
+            {/* Default routes */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
-);
+        </Suspense>
+        <Toaster />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}
 
 export default App;

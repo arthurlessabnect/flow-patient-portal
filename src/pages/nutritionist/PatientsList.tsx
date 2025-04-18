@@ -16,6 +16,7 @@ import {
 import { Patient } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
+import { Card } from "@/components/ui/card";
 
 export default function PatientsList() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -32,61 +33,19 @@ export default function PatientsList() {
       try {
         setIsLoading(true);
         
-        // Em um caso real, você buscaria do Supabase
-        // Usando dados fictícios por enquanto
-        const mockPatients: Patient[] = [
-          {
-            id: "1",
-            auth_user_id: "auth1",
-            nutritionist_id: user.id,
-            created_at: "2023-01-15",
-            name: "Maria Silva",
-            email: "maria@example.com",
-            phone: "11999999999",
-            gender: "Feminino",
-            birth_date: "15/05/1985",
-            height: 165,
-            initial_weight: 68,
-            goal: "Perda de peso",
-            body_fat_percentage: 28,
-            bmr: 1500,
-          },
-          {
-            id: "2",
-            auth_user_id: "auth2",
-            nutritionist_id: user.id,
-            created_at: "2023-02-20",
-            name: "João Pereira",
-            email: "joao@example.com",
-            phone: "11988888888",
-            gender: "Masculino",
-            birth_date: "10/07/1990",
-            height: 180,
-            initial_weight: 85,
-            goal: "Ganho de massa",
-            body_fat_percentage: 18,
-            bmr: 2000,
-          },
-          {
-            id: "3",
-            auth_user_id: "auth3",
-            nutritionist_id: user.id,
-            created_at: "2023-03-05",
-            name: "Ana Souza",
-            email: "ana@example.com",
-            phone: "11977777777",
-            gender: "Feminino",
-            birth_date: "22/11/1980",
-            height: 160,
-            initial_weight: 62,
-            goal: "Manutenção",
-            body_fat_percentage: 25,
-            bmr: 1400,
-          },
-        ];
+        const { data, error } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('nutritionist_id', user.id);
         
-        setPatients(mockPatients);
-        setFilteredPatients(mockPatients);
+        if (error) {
+          throw error;
+        }
+        
+        if (data) {
+          setPatients(data);
+          setFilteredPatients(data);
+        }
       } catch (error) {
         console.error("Erro ao buscar pacientes:", error);
       } finally {
@@ -103,8 +62,8 @@ export default function PatientsList() {
     } else {
       const filtered = patients.filter(
         (patient) =>
-          patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          patient.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          patient.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           patient.goal?.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredPatients(filtered);
@@ -114,25 +73,20 @@ export default function PatientsList() {
   const calculateAge = (birthDateStr: string | null) => {
     if (!birthDateStr) return "-";
     
-    // Assumindo formato DD/MM/AAAA
-    const parts = birthDateStr.split('/');
-    if (parts.length !== 3) return "-";
-    
-    const birthDate = new Date(
-      parseInt(parts[2]), 
-      parseInt(parts[1]) - 1, 
-      parseInt(parts[0])
-    );
-    
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
+    try {
+      const birthDate = new Date(birthDateStr);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      return age;
+    } catch (e) {
+      return "-";
     }
-    
-    return age;
   };
 
   const handleAddPatient = () => {
@@ -148,30 +102,33 @@ export default function PatientsList() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <div className="relative w-full sm:w-72">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
             <Input
               type="search"
               placeholder="Buscar pacientes..."
-              className="pl-8"
+              className="pl-10"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button onClick={handleAddPatient}>
+          <Button 
+            onClick={handleAddPatient}
+            className="bg-green-600 hover:bg-green-700"
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             Adicionar Paciente
           </Button>
         </div>
 
-        <div className="rounded-md border">
+        <Card className="border-0 shadow-sm overflow-hidden">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-gray-50">
               <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Idade</TableHead>
-                <TableHead>Objetivo</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead className="font-semibold">Nome</TableHead>
+                <TableHead className="font-semibold">Email</TableHead>
+                <TableHead className="font-semibold">Idade</TableHead>
+                <TableHead className="font-semibold">Objetivo</TableHead>
+                <TableHead className="text-right font-semibold">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -190,15 +147,16 @@ export default function PatientsList() {
               ) : (
                 filteredPatients.map((patient) => (
                   <TableRow key={patient.id}>
-                    <TableCell>{patient.name}</TableCell>
+                    <TableCell className="font-medium">{patient.name}</TableCell>
                     <TableCell>{patient.email}</TableCell>
                     <TableCell>{calculateAge(patient.birth_date)}</TableCell>
                     <TableCell>{patient.goal || "-"}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="sm"
                         onClick={() => handleViewPatient(patient.id)}
+                        className="text-gray-600 hover:text-green-600"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -208,7 +166,7 @@ export default function PatientsList() {
               )}
             </TableBody>
           </Table>
-        </div>
+        </Card>
       </div>
     </NutritionistLayout>
   );

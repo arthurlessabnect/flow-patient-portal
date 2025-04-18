@@ -9,23 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 import { AddPatientFormData } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import {
   Card, 
   CardContent, 
-  CardDescription, 
   CardFooter, 
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -47,7 +37,6 @@ export default function AddPatient() {
     body_fat_percentage: 0,
     bmr: 0,
   });
-  const [date, setDate] = useState<Date | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -69,14 +58,6 @@ export default function AddPatient() {
 
   const handleSelectChange = (value: string, name: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleDateChange = (selectedDate: Date | undefined) => {
-    setDate(selectedDate);
-    if (selectedDate) {
-      const formattedDate = format(selectedDate, "yyyy-MM-dd");
-      setFormData((prev) => ({ ...prev, birth_date: formattedDate }));
-    }
   };
 
   const validateForm = () => {
@@ -133,13 +114,23 @@ export default function AddPatient() {
     try {
       setIsLoading(true);
       
-      // Call create-patient Supabase Edge Function
-      const { data, error } = await supabase.functions.invoke('create-patient', {
-        body: {
-          patientData: formData,
-          nutritionistId: user.id
-        }
-      });
+      // Create patient directly in the database
+      const { data, error } = await supabase
+        .from('patients')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone || null,
+          gender: formData.gender,
+          birth_date: formData.birth_date || null,
+          height_cm: formData.height || null,
+          initial_weight_kg: formData.initial_weight || null,
+          body_fat_percentage: formData.body_fat_percentage || null,
+          basal_metabolic_rate: formData.bmr || null,
+          goal: formData.goal,
+          nutritionist_id: user.id
+        })
+        .select();
       
       if (error) {
         throw new Error(`Erro ao criar paciente: ${error.message}`);
@@ -147,7 +138,7 @@ export default function AddPatient() {
       
       toast({
         title: "Sucesso!",
-        description: "Paciente adicionado e convite enviado",
+        description: "Paciente adicionado com sucesso",
       });
       
       navigate("/nutritionist/patients");
@@ -167,17 +158,14 @@ export default function AddPatient() {
   return (
     <NutritionistLayout title="Adicionar Paciente">
       <div className="max-w-3xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Adicionar Novo Paciente</CardTitle>
-            <CardDescription>
-              Preencha os dados do paciente para criar uma conta e enviar um convite por email
-            </CardDescription>
+        <Card className="bg-white shadow-sm border-0">
+          <CardHeader className="border-b pb-4">
+            <CardTitle className="text-xl text-green-900">Adicionar Novo Paciente</CardTitle>
           </CardHeader>
           <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 p-6">
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Informações Pessoais</h3>
+                <h3 className="text-lg font-medium text-green-800">Informações Pessoais</h3>
                 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
@@ -228,44 +216,28 @@ export default function AddPatient() {
                         <SelectValue placeholder="Selecione o gênero" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="male">Masculino</SelectItem>
-                        <SelectItem value="female">Feminino</SelectItem>
+                        <SelectItem value="Masculino">Masculino</SelectItem>
+                        <SelectItem value="Feminino">Feminino</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="birth_date">Data de Nascimento</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-full justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}
-                          disabled={isLoading}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, "dd/MM/yyyy") : "Selecione uma data"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={handleDateChange}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
+                    <Label htmlFor="birth_date">Data de Nascimento (DD/MM/AAAA)</Label>
+                    <Input
+                      id="birth_date"
+                      name="birth_date"
+                      placeholder="15/05/1985"
+                      value={formData.birth_date}
+                      onChange={handleInputChange}
+                      disabled={isLoading}
+                    />
                   </div>
                 </div>
               </div>
               
               <div className="space-y-4">
-                <h3 className="text-lg font-medium">Informações Nutricionais</h3>
+                <h3 className="text-lg font-medium text-green-800">Informações Nutricionais</h3>
                 
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
@@ -337,7 +309,7 @@ export default function AddPatient() {
               </div>
             </CardContent>
             
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex justify-between border-t p-6">
               <Button 
                 type="button" 
                 variant="outline" 
@@ -346,7 +318,11 @@ export default function AddPatient() {
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-green-600 hover:bg-green-700"
+              >
                 {isLoading ? "Salvando..." : "Adicionar Paciente"}
               </Button>
             </CardFooter>
