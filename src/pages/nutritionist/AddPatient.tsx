@@ -9,7 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { AddPatientFormData } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
-import { 
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
   Card, 
   CardContent, 
   CardDescription, 
@@ -17,6 +21,18 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function AddPatient() {
   const [formData, setFormData] = useState<AddPatientFormData>({
@@ -31,6 +47,7 @@ export default function AddPatient() {
     body_fat_percentage: 0,
     bmr: 0,
   });
+  const [date, setDate] = useState<Date | undefined>();
   const [isLoading, setIsLoading] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -50,13 +67,26 @@ export default function AddPatient() {
     setFormData((prev) => ({ ...prev, [name]: parsedValue }));
   };
 
+  const handleSelectChange = (value: string, name: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDateChange = (selectedDate: Date | undefined) => {
+    setDate(selectedDate);
+    if (selectedDate) {
+      const formattedDate = format(selectedDate, "yyyy-MM-dd");
+      setFormData((prev) => ({ ...prev, birth_date: formattedDate }));
+    }
+  };
+
   const validateForm = () => {
     const requiredFields = [
       "name", 
       "email", 
       "height", 
       "initial_weight", 
-      "goal"
+      "goal",
+      "gender"
     ];
     
     for (const field of requiredFields) {
@@ -103,12 +133,17 @@ export default function AddPatient() {
     try {
       setIsLoading(true);
       
-      // Em um caso real, você chamaria a edge function
-      // create-patient do Supabase para:
-      // 1. Criar um usuário Auth com email/senha
-      // 2. Definir role como 'patient'
-      // 3. Inserir os dados na tabela patients
-      // 4. Enviar email de convite
+      // Call create-patient Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('create-patient', {
+        body: {
+          patientData: formData,
+          nutritionistId: user.id
+        }
+      });
+      
+      if (error) {
+        throw new Error(`Erro ao criar paciente: ${error.message}`);
+      }
       
       toast({
         title: "Sucesso!",
@@ -116,12 +151,12 @@ export default function AddPatient() {
       });
       
       navigate("/nutritionist/patients");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao adicionar paciente:", error);
       
       toast({
         title: "Erro ao adicionar paciente",
-        description: "Ocorreu um erro ao adicionar o paciente",
+        description: error.message || "Ocorreu um erro ao adicionar o paciente",
         variant: "destructive",
       });
     } finally {
@@ -183,27 +218,48 @@ export default function AddPatient() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="gender">Gênero</Label>
-                    <Input
-                      id="gender"
-                      name="gender"
-                      placeholder="Gênero"
-                      value={formData.gender}
-                      onChange={handleInputChange}
+                    <Label htmlFor="gender">Gênero*</Label>
+                    <Select
+                      onValueChange={(value) => handleSelectChange(value, "gender")}
+                      defaultValue={formData.gender}
                       disabled={isLoading}
-                    />
+                    >
+                      <SelectTrigger id="gender">
+                        <SelectValue placeholder="Selecione o gênero" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Masculino</SelectItem>
+                        <SelectItem value="female">Feminino</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="birth_date">Data de Nascimento</Label>
-                    <Input
-                      id="birth_date"
-                      name="birth_date"
-                      placeholder="DD/MM/AAAA"
-                      value={formData.birth_date}
-                      onChange={handleInputChange}
-                      disabled={isLoading}
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                          )}
+                          disabled={isLoading}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? format(date, "dd/MM/yyyy") : "Selecione uma data"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={handleDateChange}
+                          initialFocus
+                          className="p-3 pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                 </div>
               </div>

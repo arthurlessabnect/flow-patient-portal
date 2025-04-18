@@ -5,7 +5,7 @@ import {
   LayoutDashboard, 
   Apple, 
   LineChart,
-  MessageSquare,
+  UtensilsCrossed,
   User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -60,8 +60,8 @@ export const PatientLayout = ({ children, title }: PatientLayoutProps) => {
       href: '/patient/my-results',
     },
     {
-      icon: MessageSquare,
-      label: 'Histórico IA',
+      icon: UtensilsCrossed,
+      label: 'Histórico de Refeições',
       href: '/patient/recent-meals-ia',
     }
   ];

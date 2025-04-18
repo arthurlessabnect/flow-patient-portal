@@ -3,190 +3,129 @@ import { useState, useEffect } from "react";
 import { PatientLayout } from "@/layouts/PatientLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  MessageSquare, 
-  Bot,
-  User,
-  Calendar
+  UtensilsCrossed, 
+  Calendar,
+  Clock,
+  Plus
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { MealChatHistory } from "@/types";
 import { supabase } from "@/lib/supabaseClient";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+interface DailyIntake {
+  id: string;
+  date: string;
+  meal_time: string;
+  food_description: string;
+  calories: number | null;
+  quantity_description: string | null;
+  notes: string | null;
+  water_ml: number | null;
+  protein_g: number | null;
+  fat_g: number | null;
+  carbohydrates_g: number | null;
+  fiber_g: number | null;
+  created_at: string;
+}
 
 export default function RecentMealsIA() {
   const { user } = useAuth();
-  const [chatHistory, setChatHistory] = useState<MealChatHistory[]>([]);
+  const [mealHistory, setMealHistory] = useState<DailyIntake[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchChatHistory = async () => {
+    const fetchMealHistory = async () => {
       if (!user) return;
 
       try {
         setIsLoading(true);
         
-        // Em um caso real, você buscaria do Supabase
-        // Simulando dados por enquanto
-        const mockChatHistory: MealChatHistory[] = [
-          {
-            id: "1",
-            patient_id: "patient1",
-            created_at: "2023-04-29T08:30:00Z",
-            message: "Bom dia! Tomei café com 2 ovos mexidos, 1 torrada integral com abacate e um copo de suco de laranja.",
-            is_from_ai: false,
-            meal_data: {
-              meal_type: "Café da Manhã",
-              food_items: [
-                { name: "Ovos mexidos", quantity: "2 unidades", calories: 180 },
-                { name: "Torrada integral", quantity: "1 fatia", calories: 80 },
-                { name: "Abacate", quantity: "1/4 unidade", calories: 80 },
-                { name: "Suco de laranja", quantity: "200ml", calories: 90 }
-              ],
-              total_calories: 430
-            }
-          },
-          {
-            id: "2",
-            patient_id: "patient1",
-            created_at: "2023-04-29T08:31:00Z",
-            message: "Obrigado pelo registro! Seu café da manhã tem ótimas fontes de proteína e gorduras saudáveis. Totalizou 430 calorias, o que representa 21% da sua meta diária de 2000 calorias.",
-            is_from_ai: true,
-            meal_data: null
-          },
-          {
-            id: "3",
-            patient_id: "patient1",
-            created_at: "2023-04-29T12:45:00Z",
-            message: "Almocei frango grelhado (150g), arroz integral (4 colheres), feijão e salada de alface com tomate. Bebi água.",
-            is_from_ai: false,
-            meal_data: {
-              meal_type: "Almoço",
-              food_items: [
-                { name: "Frango grelhado", quantity: "150g", calories: 250 },
-                { name: "Arroz integral", quantity: "4 colheres", calories: 150 },
-                { name: "Feijão", quantity: "concha pequena", calories: 110 },
-                { name: "Salada de alface e tomate", quantity: "à vontade", calories: 50 }
-              ],
-              total_calories: 560
-            }
-          },
-          {
-            id: "4",
-            patient_id: "patient1",
-            created_at: "2023-04-29T12:46:00Z",
-            message: "Excelente refeição balanceada! Seu almoço totalizou aproximadamente 560 calorias, com boa distribuição de proteínas, carboidratos complexos e fibras. Você já consumiu cerca de 990 calorias hoje (49.5% da meta).",
-            is_from_ai: true,
-            meal_data: null
-          },
-          {
-            id: "5",
-            patient_id: "patient1",
-            created_at: "2023-04-29T16:15:00Z",
-            message: "Lanche da tarde: uma maçã e um punhado de castanhas.",
-            is_from_ai: false,
-            meal_data: {
-              meal_type: "Lanche",
-              food_items: [
-                { name: "Maçã", quantity: "1 unidade", calories: 80 },
-                { name: "Castanhas mistas", quantity: "30g", calories: 180 }
-              ],
-              total_calories: 260
-            }
-          },
-          {
-            id: "6",
-            patient_id: "patient1",
-            created_at: "2023-04-29T16:16:00Z",
-            message: "Ótima escolha para o lanche! As castanhas fornecem gorduras saudáveis e a maçã traz fibras e nutrientes. Esse lanche tem aproximadamente 260 calorias. Até agora, você consumiu cerca de 1250 calorias hoje (62.5% da sua meta).",
-            is_from_ai: true,
-            meal_data: null
-          },
-          {
-            id: "7",
-            patient_id: "patient1",
-            created_at: "2023-04-28T08:15:00Z",
-            message: "Café da manhã: iogurte natural com granola e banana.",
-            is_from_ai: false,
-            meal_data: {
-              meal_type: "Café da Manhã",
-              food_items: [
-                { name: "Iogurte natural", quantity: "200g", calories: 120 },
-                { name: "Granola", quantity: "30g", calories: 150 },
-                { name: "Banana", quantity: "1 unidade", calories: 90 }
-              ],
-              total_calories: 360
-            }
-          },
-          {
-            id: "8",
-            patient_id: "patient1",
-            created_at: "2023-04-28T08:16:00Z",
-            message: "Bom dia! Seu café da manhã parece delicioso e nutritivo. Total aproximado de 360 calorias, com bom aporte de carboidratos, incluindo fibras da banana e granola, além de proteínas do iogurte.",
-            is_from_ai: true,
-            meal_data: null
-          },
-        ];
+        // Get the date 15 days ago
+        const fifteenDaysAgo = new Date();
+        fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
+        const dateString = fifteenDaysAgo.toISOString().split('T')[0];
         
-        setTimeout(() => {
-          setChatHistory(mockChatHistory);
-          setIsLoading(false);
-        }, 600);
+        // Fetch real data from daily_intake table
+        const { data, error } = await supabase
+          .from('daily_intake')
+          .select('*')
+          .eq('patient_id', user.id)
+          .gte('date', dateString)
+          .order('date', { ascending: false })
+          .order('meal_time', { ascending: true });
+        
+        if (error) {
+          throw new Error(error.message);
+        }
+        
+        setMealHistory(data || []);
+        setIsLoading(false);
       } catch (error) {
-        console.error("Erro ao buscar histórico de chat:", error);
+        console.error("Erro ao buscar histórico de refeições:", error);
         setIsLoading(false);
       }
     };
 
-    fetchChatHistory();
+    fetchMealHistory();
   }, [user]);
 
-  // Agrupar mensagens por data
-  const groupMessagesByDate = () => {
-    const grouped: { [key: string]: MealChatHistory[] } = {};
+  // Group meals by date
+  const groupMealsByDate = () => {
+    const grouped: { [key: string]: DailyIntake[] } = {};
     
-    chatHistory.forEach(message => {
-      const date = new Date(message.created_at).toLocaleDateString('pt-BR');
+    mealHistory.forEach(meal => {
+      const date = meal.date;
       if (!grouped[date]) {
         grouped[date] = [];
       }
-      grouped[date].push(message);
+      grouped[date].push(meal);
     });
     
-    // Ordenar as datas (mais recentes primeiro)
+    // Sort dates (most recent first)
     return Object.entries(grouped)
       .sort((a, b) => {
-        const dateA = new Date(a[0].split('/').reverse().join('-'));
-        const dateB = new Date(b[0].split('/').reverse().join('-'));
-        return dateB.getTime() - dateA.getTime();
+        return new Date(b[0]).getTime() - new Date(a[0]).getTime();
       });
   };
 
-  const groupedMessages = groupMessagesByDate();
+  const groupedMeals = groupMealsByDate();
 
-  const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatTime = (time: string) => {
+    // If time is in HH:MM:SS format, return HH:MM
+    if (time && time.includes(':')) {
+      return time.substring(0, 5);
+    }
+    return time;
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    } catch (e) {
+      return dateString;
+    }
   };
 
   if (isLoading) {
     return (
-      <PatientLayout title="Histórico IA">
+      <PatientLayout title="Histórico de Refeições">
         <div className="flex items-center justify-center h-64">
-          <p>Carregando histórico de conversas...</p>
+          <p>Carregando histórico de refeições...</p>
         </div>
       </PatientLayout>
     );
   }
 
-  if (chatHistory.length === 0) {
+  if (mealHistory.length === 0) {
     return (
-      <PatientLayout title="Histórico IA">
+      <PatientLayout title="Histórico de Refeições">
         <div className="text-center py-12">
-          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Nenhuma conversa encontrada</h2>
+          <UtensilsCrossed className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Nenhuma refeição encontrada</h2>
           <p className="text-muted-foreground">
-            Você ainda não registrou nenhuma refeição através do chat.
+            Você ainda não registrou nenhuma refeição nos últimos 15 dias.
           </p>
         </div>
       </PatientLayout>
@@ -194,91 +133,85 @@ export default function RecentMealsIA() {
   }
 
   return (
-    <PatientLayout title="Histórico IA">
+    <PatientLayout title="Histórico de Refeições">
       <div className="space-y-8">
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5" />
-              Histórico de Conversas
+              <UtensilsCrossed className="h-5 w-5" />
+              Histórico de Refeições
             </CardTitle>
             <CardDescription>
-              Suas últimas interações com o assistente de nutrição
+              Registro das suas refeições nos últimos 15 dias
             </CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-2">
-              Este é o histórico dos últimos 15 dias das suas conversas com a Nutri Lessa IA.
-              As refeições registradas são automaticamente contabilizadas no seu progresso diário.
+              Aqui você pode visualizar todas as refeições que você registrou nos últimos 15 dias.
+              Estas informações são utilizadas para calcular seu consumo médio diário.
             </p>
           </CardContent>
         </Card>
 
-        {groupedMessages.map(([date, messages]) => (
+        {groupedMeals.map(([date, meals]) => (
           <div key={date} className="space-y-3">
             <div className="flex items-center gap-2 mb-4">
               <Calendar className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-medium">{date}</h3>
+              <h3 className="font-medium">{formatDate(date)}</h3>
             </div>
             
-            {messages
-              .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-              .map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-4 ${
-                    message.is_from_ai ? "flex-row" : "flex-row-reverse"
-                  }`}
-                >
-                  <div className="flex-shrink-0 mt-1">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                        message.is_from_ai
-                          ? "bg-water-100 text-water-600"
-                          : "bg-nutriflow-100 text-nutriflow-600"
-                      }`}
-                    >
-                      {message.is_from_ai ? (
-                        <Bot className="h-4 w-4" />
-                      ) : (
-                        <User className="h-4 w-4" />
-                      )}
-                    </div>
+            {meals.map((meal) => (
+              <Card key={meal.id} className="overflow-hidden">
+                <div className="bg-nutriflow-50 p-3 border-b flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-nutriflow-600" />
+                    <span className="font-medium">{formatTime(meal.meal_time)}</span>
                   </div>
-                  
-                  <div
-                    className={`relative p-4 rounded-lg max-w-[80%] text-sm ${
-                      message.is_from_ai
-                        ? "bg-water-50 text-water-900"
-                        : "bg-nutriflow-50 text-nutriflow-900"
-                    }`}
-                  >
-                    <div className="mb-2">
-                      {message.message}
-                    </div>
-                    
-                    {message.meal_data && (
-                      <div className="mt-2 p-3 bg-white rounded border">
-                        <p className="font-medium text-xs mb-2">
-                          {message.meal_data.meal_type} - {message.meal_data.total_calories} calorias
-                        </p>
-                        <ul className="space-y-1 text-xs text-muted-foreground">
-                          {message.meal_data.food_items.map((item: any, index: number) => (
-                            <li key={index} className="flex justify-between">
-                              <span>{item.name} ({item.quantity})</span>
-                              <span>{item.calories} kcal</span>
-                            </li>
-                          ))}
-                        </ul>
+                  <div className="text-sm text-nutriflow-700">
+                    {meal.calories ? `${meal.calories} kcal` : ""}
+                  </div>
+                </div>
+                <CardContent className="p-4">
+                  <div className="space-y-2">
+                    <div className="font-medium">{meal.food_description}</div>
+                    {meal.quantity_description && (
+                      <div className="text-sm text-muted-foreground">
+                        Porção: {meal.quantity_description}
                       </div>
                     )}
                     
-                    <span className="absolute bottom-1 right-2 text-xs text-muted-foreground">
-                      {formatTime(message.created_at)}
-                    </span>
+                    {(meal.protein_g || meal.carbohydrates_g || meal.fat_g) && (
+                      <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
+                        {meal.protein_g && (
+                          <div className="bg-blue-50 p-2 rounded">
+                            <div className="font-medium">Proteínas</div>
+                            <div>{meal.protein_g}g</div>
+                          </div>
+                        )}
+                        {meal.carbohydrates_g && (
+                          <div className="bg-amber-50 p-2 rounded">
+                            <div className="font-medium">Carboidratos</div>
+                            <div>{meal.carbohydrates_g}g</div>
+                          </div>
+                        )}
+                        {meal.fat_g && (
+                          <div className="bg-rose-50 p-2 rounded">
+                            <div className="font-medium">Gorduras</div>
+                            <div>{meal.fat_g}g</div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    {meal.notes && (
+                      <div className="text-sm mt-2 p-2 bg-gray-50 rounded-md">
+                        {meal.notes}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ))}
       </div>
