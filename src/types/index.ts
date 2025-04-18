@@ -1,4 +1,3 @@
-
 export type Role = 'admin' | 'nutritionist' | 'patient';
 
 export interface User {
@@ -25,11 +24,11 @@ export interface Patient {
   phone: string | null;
   gender: string | null;
   birth_date: string | null;
-  height: number | null;
-  initial_weight: number | null;
+  height: number | null;         // Changed from height_cm
+  initial_weight: number | null; // Changed from initial_weight_kg
   goal: string | null;
   body_fat_percentage: number | null;
-  bmr: number | null;
+  bmr: number | null;            // Changed from basal_metabolic_rate
 }
 
 export interface Diet {

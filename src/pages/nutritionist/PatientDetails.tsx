@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NutritionistLayout } from "@/layouts/NutritionistLayout";
@@ -43,8 +42,14 @@ export default function PatientDetails() {
         }
         
         if (data) {
-          setPatient(data);
-          setEditedPatient(data);
+          const patientData: Patient = {
+            ...data,
+            height: data.height_cm,
+            initial_weight: data.initial_weight_kg,
+            bmr: data.basal_metabolic_rate,
+          };
+          setPatient(patientData);
+          setEditedPatient(patientData);
         }
       } catch (error) {
         console.error("Erro ao buscar dados do paciente:", error);
@@ -81,7 +86,6 @@ export default function PatientDetails() {
     const { name, value } = e.target;
     let parsedValue: string | number = value;
     
-    // Parse numeric inputs
     if (["height", "initial_weight", "body_fat_percentage", "bmr"].includes(name)) {
       parsedValue = value === "" ? 0 : parseFloat(value);
     }
@@ -106,10 +110,10 @@ export default function PatientDetails() {
           phone: editedPatient.phone,
           gender: editedPatient.gender,
           birth_date: editedPatient.birth_date,
-          height: editedPatient.height,
-          initial_weight: editedPatient.initial_weight,
+          height_cm: editedPatient.height,
+          initial_weight_kg: editedPatient.initial_weight,
+          basal_metabolic_rate: editedPatient.bmr,
           body_fat_percentage: editedPatient.body_fat_percentage,
-          bmr: editedPatient.bmr,
           goal: editedPatient.goal
         })
         .eq('id', patientId);
