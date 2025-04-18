@@ -1,0 +1,105 @@
+
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ClipboardList } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { signIn, error } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email || !password) {
+      toast({
+        title: "Erro de validação",
+        description: "Por favor, preencha todos os campos",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      await signIn(email, password);
+
+      // Navegação será feita automaticamente pelo Router após a autenticação
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
+      <div className="w-full max-w-md">
+        <div className="flex flex-col items-center mb-8">
+          <div className="h-16 w-16 rounded-full bg-nutriflow-500 flex items-center justify-center text-white mb-4">
+            <ClipboardList className="h-8 w-8" />
+          </div>
+          <h1 className="text-3xl font-bold text-nutriflow-800">NutriFlow</h1>
+          <p className="text-sm text-muted-foreground mt-1">Gerenciamento de nutrição e pacientes</p>
+        </div>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Login</CardTitle>
+            <CardDescription>
+              Entre com suas credenciais para acessar o sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="seu@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="●●●●●●●●"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              {error && (
+                <div className="text-destructive text-sm">
+                  {error}
+                </div>
+              )}
+              
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Entrando..." : "Entrar"}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center text-xs text-muted-foreground">
+            NutriFlow - Plataforma para nutricionistas e pacientes
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  );
+}
