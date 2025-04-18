@@ -82,7 +82,7 @@ export default function PatientDetails() {
     let parsedValue: string | number = value;
     
     // Parse numeric inputs
-    if (["height_cm", "initial_weight_kg", "body_fat_percentage", "basal_metabolic_rate"].includes(name)) {
+    if (["height", "initial_weight", "body_fat_percentage", "bmr"].includes(name)) {
       parsedValue = value === "" ? 0 : parseFloat(value);
     }
     
@@ -106,10 +106,10 @@ export default function PatientDetails() {
           phone: editedPatient.phone,
           gender: editedPatient.gender,
           birth_date: editedPatient.birth_date,
-          height_cm: editedPatient.height_cm,
-          initial_weight_kg: editedPatient.initial_weight_kg,
+          height: editedPatient.height,
+          initial_weight: editedPatient.initial_weight,
           body_fat_percentage: editedPatient.body_fat_percentage,
-          basal_metabolic_rate: editedPatient.basal_metabolic_rate,
+          bmr: editedPatient.bmr,
           goal: editedPatient.goal
         })
         .eq('id', patientId);
@@ -203,11 +203,11 @@ export default function PatientDetails() {
             <div className="grid gap-6 md:grid-cols-4">
               <div>
                 <p className="text-sm text-gray-500">Altura</p>
-                <p className="text-lg font-medium">{patient.height_cm ? `${patient.height_cm} cm` : "-"}</p>
+                <p className="text-lg font-medium">{patient.height ? `${patient.height} cm` : "-"}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Peso Inicial</p>
-                <p className="text-lg font-medium">{patient.initial_weight_kg ? `${patient.initial_weight_kg} kg` : "-"}</p>
+                <p className="text-lg font-medium">{patient.initial_weight ? `${patient.initial_weight} kg` : "-"}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">% Gordura Corporal</p>
@@ -215,7 +215,7 @@ export default function PatientDetails() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">TMB</p>
-                <p className="text-lg font-medium">{patient.basal_metabolic_rate ? `${patient.basal_metabolic_rate} kcal` : "-"}</p>
+                <p className="text-lg font-medium">{patient.bmr ? `${patient.bmr} kcal` : "-"}</p>
               </div>
             </div>
           </CardContent>
@@ -324,23 +324,23 @@ export default function PatientDetails() {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="height_cm">Altura (cm)</Label>
+                          <Label htmlFor="height">Altura (cm)</Label>
                           <Input
-                            id="height_cm"
-                            name="height_cm"
+                            id="height"
+                            name="height"
                             type="number"
-                            value={editedPatient?.height_cm || ''}
+                            value={editedPatient?.height || ''}
                             onChange={handleInputChange}
                           />
                         </div>
                         <div>
-                          <Label htmlFor="initial_weight_kg">Peso Inicial (kg)</Label>
+                          <Label htmlFor="initial_weight">Peso Inicial (kg)</Label>
                           <Input
-                            id="initial_weight_kg"
-                            name="initial_weight_kg"
+                            id="initial_weight"
+                            name="initial_weight"
                             type="number"
                             step="0.1"
-                            value={editedPatient?.initial_weight_kg || ''}
+                            value={editedPatient?.initial_weight || ''}
                             onChange={handleInputChange}
                           />
                         </div>
@@ -356,12 +356,12 @@ export default function PatientDetails() {
                           />
                         </div>
                         <div>
-                          <Label htmlFor="basal_metabolic_rate">TMB (kcal)</Label>
+                          <Label htmlFor="bmr">TMB (kcal)</Label>
                           <Input
-                            id="basal_metabolic_rate"
-                            name="basal_metabolic_rate"
+                            id="bmr"
+                            name="bmr"
                             type="number"
-                            value={editedPatient?.basal_metabolic_rate || ''}
+                            value={editedPatient?.bmr || ''}
                             onChange={handleInputChange}
                           />
                         </div>
@@ -427,11 +427,11 @@ export default function PatientDetails() {
                         </div>
                         <div className="grid grid-cols-2">
                           <span className="text-sm text-gray-500">Altura:</span>
-                          <span>{patient.height_cm ? `${patient.height_cm} cm` : "-"}</span>
+                          <span>{patient.height ? `${patient.height} cm` : "-"}</span>
                         </div>
                         <div className="grid grid-cols-2">
                           <span className="text-sm text-gray-500">Peso Inicial:</span>
-                          <span>{patient.initial_weight_kg ? `${patient.initial_weight_kg} kg` : "-"}</span>
+                          <span>{patient.initial_weight ? `${patient.initial_weight} kg` : "-"}</span>
                         </div>
                         <div className="grid grid-cols-2">
                           <span className="text-sm text-gray-500">% Gordura Corporal:</span>
@@ -439,7 +439,7 @@ export default function PatientDetails() {
                         </div>
                         <div className="grid grid-cols-2">
                           <span className="text-sm text-gray-500">TMB:</span>
-                          <span>{patient.basal_metabolic_rate ? `${patient.basal_metabolic_rate} kcal` : "-"}</span>
+                          <span>{patient.bmr ? `${patient.bmr} kcal` : "-"}</span>
                         </div>
                       </div>
                     </div>

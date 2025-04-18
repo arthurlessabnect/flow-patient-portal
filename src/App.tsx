@@ -37,58 +37,22 @@ function App() {
             <Route path="/unauthorized" element={<Unauthorized />} />
             
             {/* Nutritionist routes */}
-            <Route path="/nutritionist/dashboard" element={
-              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
-                <NutritionistDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/nutritionist/patients" element={
-              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
-                <PatientsList />
-              </ProtectedRoute>
-            } />
-            <Route path="/nutritionist/patient/:patientId" element={
-              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
-                <PatientDetails />
-              </ProtectedRoute>
-            } />
-            <Route path="/nutritionist/add-patient" element={
-              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
-                <AddPatient />
-              </ProtectedRoute>
-            } />
-            <Route path="/nutritionist/create-diet/:patientId" element={
-              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
-                <CreateDiet />
-              </ProtectedRoute>
-            } />
-            <Route path="/nutritionist/register-result/:patientId" element={
-              <ProtectedRoute allowedRoles={['nutritionist', 'admin']}>
-                <RegisterResult />
-              </ProtectedRoute>
-            } />
+            <Route element={<ProtectedRoute allowedRoles={['nutritionist', 'admin']} />}>
+              <Route path="/nutritionist/dashboard" element={<NutritionistDashboard />} />
+              <Route path="/nutritionist/patients" element={<PatientsList />} />
+              <Route path="/nutritionist/patient/:patientId" element={<PatientDetails />} />
+              <Route path="/nutritionist/add-patient" element={<AddPatient />} />
+              <Route path="/nutritionist/create-diet/:patientId" element={<CreateDiet />} />
+              <Route path="/nutritionist/register-result/:patientId" element={<RegisterResult />} />
+            </Route>
             
             {/* Patient routes */}
-            <Route path="/patient/dashboard" element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <PatientDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/patient/my-diet" element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <MyDiet />
-              </ProtectedRoute>
-            } />
-            <Route path="/patient/my-results" element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <MyResults />
-              </ProtectedRoute>
-            } />
-            <Route path="/patient/recent-meals-ia" element={
-              <ProtectedRoute allowedRoles={['patient']}>
-                <RecentMealsIA />
-              </ProtectedRoute>
-            } />
+            <Route element={<ProtectedRoute allowedRoles={['patient']} />}>
+              <Route path="/patient/dashboard" element={<PatientDashboard />} />
+              <Route path="/patient/my-diet" element={<MyDiet />} />
+              <Route path="/patient/my-results" element={<MyResults />} />
+              <Route path="/patient/recent-meals-ia" element={<RecentMealsIA />} />
+            </Route>
             
             {/* Default routes */}
             <Route path="/" element={<Navigate to="/login" replace />} />
