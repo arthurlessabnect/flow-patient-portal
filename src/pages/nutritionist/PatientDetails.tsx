@@ -53,8 +53,8 @@ export default function PatientDetails() {
             auth_user_id: '',
           };
           
-          if ('auth_user_id' in data) {
-            patientData.auth_user_id = data.auth_user_id;
+          if ('auth_user_id' in data && data.auth_user_id !== null) {
+            patientData.auth_user_id = String(data.auth_user_id);
           }
           
           setPatient(patientData);
