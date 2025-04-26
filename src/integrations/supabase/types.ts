@@ -9,110 +9,66 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      daily_intake: {
-        Row: {
-          calories: number | null
-          carbohydrates_g: number | null
-          created_at: string | null
-          date: string
-          fat_g: number | null
-          fiber_g: number | null
-          food_description: string | null
-          id: string
-          meal_time: string | null
-          notes: string | null
-          patient_id: string | null
-          protein_g: number | null
-          quantity_description: string | null
-          water_ml: number | null
-        }
-        Insert: {
-          calories?: number | null
-          carbohydrates_g?: number | null
-          created_at?: string | null
-          date: string
-          fat_g?: number | null
-          fiber_g?: number | null
-          food_description?: string | null
-          id?: string
-          meal_time?: string | null
-          notes?: string | null
-          patient_id?: string | null
-          protein_g?: number | null
-          quantity_description?: string | null
-          water_ml?: number | null
-        }
-        Update: {
-          calories?: number | null
-          carbohydrates_g?: number | null
-          created_at?: string | null
-          date?: string
-          fat_g?: number | null
-          fiber_g?: number | null
-          food_description?: string | null
-          id?: string
-          meal_time?: string | null
-          notes?: string | null
-          patient_id?: string | null
-          protein_g?: number | null
-          quantity_description?: string | null
-          water_ml?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "daily_intake_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       diets: {
         Row: {
-          created_at: string | null
+          created_at: string
+          description: string | null
           diet_pdf_url: string | null
-          end_date: string
+          end_date: string | null
+          food_description: string | null
           id: string
+          name: string
           nutritionist_id: string
           patient_id: string
+          quantity_description: string | null
           start_date: string
           target_calories: number | null
-          target_carbohydrates_g: number | null
+          target_carbohydrate_g: number | null
           target_fat_g: number | null
           target_fiber_g: number | null
           target_protein_g: number | null
           target_water_ml: number | null
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
+          description?: string | null
           diet_pdf_url?: string | null
-          end_date: string
+          end_date?: string | null
+          food_description?: string | null
           id?: string
+          name?: string
           nutritionist_id: string
           patient_id: string
+          quantity_description?: string | null
           start_date: string
           target_calories?: number | null
-          target_carbohydrates_g?: number | null
+          target_carbohydrate_g?: number | null
           target_fat_g?: number | null
           target_fiber_g?: number | null
           target_protein_g?: number | null
           target_water_ml?: number | null
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
+          description?: string | null
           diet_pdf_url?: string | null
-          end_date?: string
+          end_date?: string | null
+          food_description?: string | null
           id?: string
+          name?: string
           nutritionist_id?: string
           patient_id?: string
+          quantity_description?: string | null
           start_date?: string
           target_calories?: number | null
-          target_carbohydrates_g?: number | null
+          target_carbohydrate_g?: number | null
           target_fat_g?: number | null
           target_fiber_g?: number | null
           target_protein_g?: number | null
           target_water_ml?: number | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -133,25 +89,43 @@ export type Database = {
       }
       food_items: {
         Row: {
+          calories: number | null
+          carbohydrates_g: number | null
+          created_at: string
+          fat_g: number | null
           id: string
           meal_id: string
           name: string
           notes: string | null
+          protein_g: number | null
           quantity: string | null
+          updated_at: string
         }
         Insert: {
+          calories?: number | null
+          carbohydrates_g?: number | null
+          created_at?: string
+          fat_g?: number | null
           id?: string
           meal_id: string
           name: string
           notes?: string | null
+          protein_g?: number | null
           quantity?: string | null
+          updated_at?: string
         }
         Update: {
+          calories?: number | null
+          carbohydrates_g?: number | null
+          created_at?: string
+          fat_g?: number | null
           id?: string
           meal_id?: string
           name?: string
           notes?: string | null
+          protein_g?: number | null
           quantity?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -165,28 +139,34 @@ export type Database = {
       }
       meals: {
         Row: {
+          created_at: string
           description: string | null
           diet_id: string
           id: string
           name: string
-          order_index: number
-          time: string
+          order_index: number | null
+          time: string | null
+          updated_at: string
         }
         Insert: {
+          created_at?: string
           description?: string | null
           diet_id: string
           id?: string
           name: string
-          order_index: number
-          time: string
+          order_index?: number | null
+          time?: string | null
+          updated_at?: string
         }
         Update: {
+          created_at?: string
           description?: string | null
           diet_id?: string
           id?: string
           name?: string
-          order_index?: number
-          time?: string
+          order_index?: number | null
+          time?: string | null
+          updated_at?: string
         }
         Relationships: [
           {
@@ -198,119 +178,119 @@ export type Database = {
           },
         ]
       }
-      medidas_paciente: {
+      n8n_chat_histories: {
         Row: {
-          abdomen: number | null
-          braço: number | null
-          costas: number | null
           created_at: string
+          ia_response: Json | null
           id: number
-          id_paciente: string | null
-          patient_name: string | null
-          peitoral: number | null
-          perna: number | null
+          message_content: string | null
+          message_timestamp: string
+          message_type: string | null
+          patient_id: string
+          processed_successfully: boolean | null
+          session_id: string | null
         }
         Insert: {
-          abdomen?: number | null
-          braço?: number | null
-          costas?: number | null
           created_at?: string
+          ia_response?: Json | null
           id?: number
-          id_paciente?: string | null
-          patient_name?: string | null
-          peitoral?: number | null
-          perna?: number | null
+          message_content?: string | null
+          message_timestamp?: string
+          message_type?: string | null
+          patient_id: string
+          processed_successfully?: boolean | null
+          session_id?: string | null
         }
         Update: {
-          abdomen?: number | null
-          braço?: number | null
-          costas?: number | null
           created_at?: string
+          ia_response?: Json | null
           id?: number
-          id_paciente?: string | null
-          patient_name?: string | null
-          peitoral?: number | null
-          perna?: number | null
+          message_content?: string | null
+          message_timestamp?: string
+          message_type?: string | null
+          patient_id?: string
+          processed_successfully?: boolean | null
+          session_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "medidas_paciente_id_paciente_fkey"
-            columns: ["id_paciente"]
+            foreignKeyName: "n8n_chat_histories_patient_id_fkey"
+            columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
       }
-      n8n_chat_histories: {
-        Row: {
-          id: number
-          message: Json
-          session_id: string
-        }
-        Insert: {
-          id?: number
-          message: Json
-          session_id: string
-        }
-        Update: {
-          id?: number
-          message?: Json
-          session_id?: string
-        }
-        Relationships: []
-      }
       nutritionists: {
         Row: {
+          auth_user_id: string
+          created_at: string
           email: string
           id: string
           name: string
           type: string | null
+          updated_at: string
         }
         Insert: {
+          auth_user_id: string
+          created_at?: string
           email: string
-          id: string
+          id?: string
           name: string
           type?: string | null
+          updated_at?: string
         }
         Update: {
+          auth_user_id?: string
+          created_at?: string
           email?: string
           id?: string
           name?: string
           type?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       patient_progress: {
         Row: {
           body_fat_percentage: number | null
+          calories_consumed: number | null
           created_at: string
           id: string
           measurements: Json | null
           notes: string | null
           patient_id: string
           record_date: string
-          weight_kg: number
+          updated_at: string
+          water_ml_consumed: number | null
+          weight_kg: number | null
         }
         Insert: {
           body_fat_percentage?: number | null
+          calories_consumed?: number | null
           created_at?: string
           id?: string
           measurements?: Json | null
           notes?: string | null
           patient_id: string
           record_date?: string
-          weight_kg: number
+          updated_at?: string
+          water_ml_consumed?: number | null
+          weight_kg?: number | null
         }
         Update: {
           body_fat_percentage?: number | null
+          calories_consumed?: number | null
           created_at?: string
           id?: string
           measurements?: Json | null
           notes?: string | null
           patient_id?: string
           record_date?: string
-          weight_kg?: number
+          updated_at?: string
+          water_ml_consumed?: number | null
+          weight_kg?: number | null
         }
         Relationships: [
           {
@@ -324,55 +304,58 @@ export type Database = {
       }
       patients: {
         Row: {
-          auth_user_id: string | null
           basal_metabolic_rate: number | null
           birth_date: string | null
           body_fat_percentage: number | null
-          created_at: string | null
+          created_at: string
           email: string
           gender: string | null
           goal: string | null
           height_cm: number | null
           id: string
           initial_weight_kg: number | null
-          meta_agua: number | null
+          measurements: Json | null
           name: string
-          nutritionist_id: string | null
+          nutritionist_id: string
           phone: string | null
+          updated_at: string
+          water_goal_ml: number | null
         }
         Insert: {
-          auth_user_id?: string | null
           basal_metabolic_rate?: number | null
           birth_date?: string | null
           body_fat_percentage?: number | null
-          created_at?: string | null
+          created_at?: string
           email: string
           gender?: string | null
           goal?: string | null
           height_cm?: number | null
           id: string
           initial_weight_kg?: number | null
-          meta_agua?: number | null
+          measurements?: Json | null
           name: string
-          nutritionist_id?: string | null
+          nutritionist_id: string
           phone?: string | null
+          updated_at?: string
+          water_goal_ml?: number | null
         }
         Update: {
-          auth_user_id?: string | null
           basal_metabolic_rate?: number | null
           birth_date?: string | null
           body_fat_percentage?: number | null
-          created_at?: string | null
+          created_at?: string
           email?: string
           gender?: string | null
           goal?: string | null
           height_cm?: number | null
           id?: string
           initial_weight_kg?: number | null
-          meta_agua?: number | null
+          measurements?: Json | null
           name?: string
-          nutritionist_id?: string | null
+          nutritionist_id?: string
           phone?: string | null
+          updated_at?: string
+          water_goal_ml?: number | null
         }
         Relationships: [
           {
@@ -389,7 +372,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_patient: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
