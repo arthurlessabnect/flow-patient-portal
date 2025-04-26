@@ -10,6 +10,7 @@ const Login = lazy(() => import("@/pages/Login"));
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Unauthorized = lazy(() => import("@/pages/Unauthorized"));
 const ConfirmInvitation = lazy(() => import("@/pages/ConfirmInvitation"));
+const SupabaseTest = lazy(() => import("@/pages/SupabaseTest"));
 
 // Nutritionist pages
 const NutritionistDashboard = lazy(() => import("@/pages/nutritionist/Dashboard"));
@@ -35,6 +36,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/confirm-invitation" element={<ConfirmInvitation />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/supabase-test" element={<SupabaseTest />} />
             
             {/* Nutritionist routes */}
             <Route element={<ProtectedRoute allowedRoles={['nutritionist', 'admin']} />}>
@@ -55,7 +57,7 @@ function App() {
             </Route>
             
             {/* Default routes */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<Navigate to="/supabase-test" replace />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
