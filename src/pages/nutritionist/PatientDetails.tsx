@@ -2,16 +2,16 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NutritionistLayout } from "@/layouts/NutritionistLayout";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Patient } from "@/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { UserCircle2, Pencil, PlusCircle, BarChart, FileText, Image, Gauge, ArrowUp } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { UserCircle2, Pencil, PlusCircle, BarChart, FileText, Image, Gauge, ArrowUp } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function PatientDetails() {
   const { patientId } = useParams<{ patientId: string }>();
@@ -50,6 +50,7 @@ export default function PatientDetails() {
             height: data.height_cm,
             initial_weight: data.initial_weight_kg,
             bmr: data.basal_metabolic_rate,
+            auth_user_id: data.auth_user_id || '',
           };
           setPatient(patientData);
           setEditedPatient(patientData);

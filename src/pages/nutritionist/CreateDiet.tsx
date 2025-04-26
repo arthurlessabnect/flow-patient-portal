@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { NutritionistLayout } from "@/layouts/NutritionistLayout";
@@ -10,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PlusCircle, Utensils, CalendarRange, FileUpload, FileText } from "lucide-react";
+import { PlusCircle, Utensils, CalendarRange, FileUp, FileText } from "lucide-react";
 
 export default function CreateDiet() {
   const { patientId } = useParams<{ patientId: string }>();
@@ -92,13 +91,11 @@ export default function CreateDiet() {
     try {
       setIsLoading(true);
       
-      // Upload PDF if selected
       let dietPdfUrl = null;
       if (dietPdf && activeTab === "pdf") {
         dietPdfUrl = await uploadPdf();
       }
       
-      // Create diet record
       const { data, error } = await supabase
         .from('diets')
         .insert({
@@ -297,7 +294,7 @@ export default function CreateDiet() {
                   </div>
                   
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center">
-                    <FileUpload className="h-12 w-12 text-gray-400 mb-4" />
+                    <FileUp className="h-12 w-12 text-gray-400 mb-4" />
                     
                     <p className="text-lg font-medium mb-2">Arraste e solte o arquivo PDF ou clique para selecionar</p>
                     <p className="text-sm text-gray-500 mb-4">PDF (máx. 5MB)</p>
