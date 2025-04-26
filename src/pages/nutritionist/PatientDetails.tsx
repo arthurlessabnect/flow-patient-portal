@@ -50,8 +50,13 @@ export default function PatientDetails() {
             height: data.height_cm,
             initial_weight: data.initial_weight_kg,
             bmr: data.basal_metabolic_rate,
-            auth_user_id: data.auth_user_id || '',
+            auth_user_id: '',
           };
+          
+          if ('auth_user_id' in data) {
+            patientData.auth_user_id = data.auth_user_id;
+          }
+          
           setPatient(patientData);
           setEditedPatient(patientData);
 
@@ -681,7 +686,7 @@ export default function PatientDetails() {
                   <div className="text-center py-12">
                     <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-lg font-medium mb-2">Nenhuma dieta cadastrada</h3>
-                    <p className="text-gray-500 mb-6">
+                    <p className="text-gray-500 mb-4">
                       Você ainda não criou nenhuma dieta para este paciente.
                     </p>
                   </div>
