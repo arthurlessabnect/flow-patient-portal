@@ -16,9 +16,11 @@ export default function SupabaseTest() {
         
         if (error) throw error;
         
-        // Extract project ref from the Supabase URL
-        const url = supabase.supabaseUrl;
-        const ref = url.split("//")[1].split(".")[0];
+        // Get project reference from the client configuration
+        // Instead of accessing protected supabaseUrl property directly
+        const config = supabase.getClientConfig();
+        const url = config.url;
+        const ref = url ? url.split("//")[1].split(".")[0] : null;
         
         setProjectRef(ref);
         setStatus("Connected successfully!");
